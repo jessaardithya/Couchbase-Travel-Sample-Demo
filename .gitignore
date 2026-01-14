@@ -7,15 +7,13 @@ frontend/node_modules/
 frontend/.next/
 frontend/out/
 frontend/build/
-frontend/.env.local
-frontend/.env
 
 # --- Backend (Go) ---
 backend/super-app-demo.exe
 backend/super-app-demo
 backend/vendor/
-backend/.env
 
+.env
 # --- IDEs ---
 .vscode/
 .idea/
