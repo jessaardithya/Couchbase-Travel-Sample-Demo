@@ -3,10 +3,11 @@ import { useState, useEffect } from "react";
 import { Search, MapPin, Building2, Plane } from "lucide-react";
 
 interface SearchBarProps {
-  onSelect: (item: any) => void; // Parent callback
+  onSelect: (item: any) => void;
+  onResults?: (results: any[]) => void; // New prop to pass full list
 }
 
-export default function SearchBar({ onSelect }: SearchBarProps) {
+export default function SearchBar({ onSelect, onResults }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -19,6 +20,7 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
         performSearch(query);
       } else {
         setResults([]);
+        if (onResults) onResults([]); // Clear parent
       }
     }, 300);
 
@@ -31,7 +33,12 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
       const res = await fetch(`http://localhost:8080/api/search?q=${term}`);
       const data = await res.json();
       setResults(data);
-      setShowDropdown(true);
+      if (onResults) {
+        onResults(data); 
+        setShowDropdown(false); // Don't show dropdown if parent handles results
+      } else {
+        setShowDropdown(true);
+      }
     } catch (err) {
       console.error("Search failed", err);
     } finally {

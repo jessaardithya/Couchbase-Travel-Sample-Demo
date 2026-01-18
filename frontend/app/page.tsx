@@ -15,6 +15,7 @@ import {
   Sparkles,
   PlaneTakeoff,
   PlaneLanding,
+  MapPin,
 } from "lucide-react";
 
 export default function Home() {
@@ -33,6 +34,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null); // State for Details Modal
 
   // 1. PROTECT ROUTE: Check Login on Load
   useEffect(() => {
@@ -294,8 +296,11 @@ export default function Home() {
                     </label>
                     <SearchBar
                       onSelect={(item) => {
-                        setData(item); // 👈 Updates the main dashboard data immediately
-                        setError("");
+                        setSelectedItem(item);
+                      }}
+                      onResults={(results) => {
+                         setData(results); // Update main list
+                         setError("");
                       }}
                     />
                   </div>
@@ -455,40 +460,56 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Other Results (Hotel/Airline from SearchBar) */}
-              {!Array.isArray(data) && data && (
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-lg text-center animate-in slide-in-from-bottom-4">
-                  <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-black">
-                    {data.name?.charAt(0) || "?"}
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-900">
-                    {data.name}
-                  </h2>
-                  <p className="text-slate-500 font-medium">
-                    {data.city || data.callsign}
-                  </p>
+              {/* Other Results (Hotel/Airline from SearchBar - LIST VIEW) */}
+              {activeTab !== "flight" && activeTab !== "my-trips" && Array.isArray(data) && (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {data.map((item: any, i: number) => (
+                    <div
+                      key={i}
+                      className="group bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 relative overflow-hidden"
+                    >
+                      {/* TYPE BADGE */}
+                      <div className={`absolute top-0 left-0 px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
+                         item.type === "hotel" ? "bg-amber-100 text-amber-700" :
+                         item.type === "airline" ? "bg-sky-100 text-sky-700" :
+                         "bg-slate-100 text-slate-600"
+                      }`}>
+                        {item.type}
+                      </div>
 
-                  {/* SHOW DESCRIPTION IF AVAILABLE (Context Search) */}
-                  {data.description && (
-                    <p className="mt-4 text-sm text-slate-600 italic bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      "{data.description}"
-                    </p>
-                  )}
+                      <div className="flex justify-between items-start mt-4 mb-2">
+                         <h3 className="font-bold text-slate-900 text-lg leading-tight" dangerouslySetInnerHTML={{ __html: item.name }} />
+                         {item.score && (
+                           <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
+                             <span className="text-xs font-bold text-green-700">Match</span>
+                           </div>
+                         )}
+                      </div>
 
-                  <div className="mt-6 grid grid-cols-2 gap-4 text-left">
-                    {Object.entries(data)
-                      .slice(0, 6)
-                      .map(([key, val]: any) => (
-                        <div key={key} className="bg-slate-50 p-3 rounded-xl">
-                          <p className="text-[10px] uppercase font-bold text-slate-400">
-                            {key}
-                          </p>
-                          <p className="font-semibold text-slate-800 truncate">
-                            {val}
-                          </p>
-                        </div>
-                      ))}
-                  </div>
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-4">
+                        <MapPin className="w-3 h-3" />
+                        {item.city}, {item.country}
+                      </div>
+
+                       {item.description && (
+                        <p className="text-sm text-slate-600 line-clamp-2 bg-slate-50 p-3 rounded-xl border border-slate-50 italic mb-4">
+                          "...{item.description}..."
+                        </p>
+                      )}
+
+                      {/* Detail Footer */}
+                      <div className="pt-4 border-t border-slate-50 flex gap-2">
+                         <button 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setSelectedItem(item);
+                           }}
+                           className="relative z-10 flex-1 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer">
+                           View Details
+                         </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -507,6 +528,101 @@ export default function Home() {
           </div>
         </div>
       </main>
+      {/* DETAILS MODAL */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95">
+            <div className="relative">
+              {/* Header Image / Pattern */}
+              <div className="h-32 bg-indigo-600 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-90" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-md transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="-mt-12 px-8 pb-8">
+                <div className="bg-white p-4 rounded-2xl shadow-lg inline-block mb-4">
+                  {selectedItem.type === "airport" || selectedItem.type === "airline" ? (
+                    <Plane className="w-8 h-8 text-sky-600" />
+                  ) : (
+                    <Hotel className="w-8 h-8 text-amber-600" />
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                       <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full ${
+                         selectedItem.type === "hotel" ? "bg-amber-100 text-amber-700" :
+                         selectedItem.type === "airline" ? "bg-sky-100 text-sky-700" :
+                         "bg-slate-100 text-slate-600"
+                       }`}>
+                         {selectedItem.type}
+                       </span>
+                       <div className="flex items-center gap-1 text-slate-400 text-sm font-medium">
+                         <MapPin className="w-4 h-4" />
+                         {selectedItem.city}, {selectedItem.country}
+                       </div>
+                    </div>
+                    <h2 className="text-3xl font-black text-slate-900 leading-tight">
+                      {selectedItem.name}
+                    </h2>
+                  </div>
+
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase mb-3 flex items-center gap-2">
+                       <Sparkles className="w-4 h-4 text-indigo-500" /> About
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      {selectedItem.description || "No description available for this item."}
+                    </p>
+                  </div>
+
+                  {/* Additional Info Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p className="text-slate-400 text-xs font-bold uppercase mb-1">Address</p>
+                        <p className="font-medium text-slate-900">{selectedItem.address || "N/A"}</p>
+                     </div>
+                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p className="text-slate-400 text-xs font-bold uppercase mb-1">Contact</p>
+                        <p className="font-medium text-slate-900">{selectedItem.phone || "N/A"}</p>
+                     </div>
+                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p className="text-slate-400 text-xs font-bold uppercase mb-1">Geo</p>
+                        <p className="font-mono text-xs text-slate-600">
+                          Lat: {selectedItem.geo?.lat || "N/A"}, Lon: {selectedItem.geo?.lon || "N/A"}
+                        </p>
+                     </div>
+                     {selectedItem.reviews && (
+                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                          <p className="text-slate-400 text-xs font-bold uppercase mb-1">Reviews</p>
+                          <p className="font-medium text-slate-900">{selectedItem.reviews.length} Reviews</p>
+                       </div>
+                     )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-4 border-t border-slate-100">
+                    <button className="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]">
+                      Book Now
+                    </button>
+                    <button className="flex-1 py-3.5 bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+                      Save for later
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
