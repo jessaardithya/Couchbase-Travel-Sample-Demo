@@ -29,7 +29,7 @@ func main() {
 	routes.SetupRoutes()
 
 	port := ":8080"
-	fmt.Printf("\n✅ Server is running at: http://localhost%s\n", port)
+	fmt.Printf("\nServer is running at: http://localhost%s\n", port)
 
 	// Block here and listen for requests
 	err := http.ListenAndServe(port, enableCORS(http.DefaultServeMux))

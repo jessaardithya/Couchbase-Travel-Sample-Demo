@@ -9,6 +9,7 @@ import (
 func SetupRoutes() {
 	http.HandleFunc("/api/airline", controllers.GetAirlineByID)
 	http.HandleFunc("/api/hotel", controllers.GetHotelByID)
+	http.HandleFunc("/api/admin/backfill-vectors", controllers.BackfillVectors)
 
 	http.HandleFunc("/api/flight", controllers.SearchFlights)
 	http.HandleFunc("/api/search", controllers.SearchGlobal)
